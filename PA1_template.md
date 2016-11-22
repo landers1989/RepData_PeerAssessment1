@@ -28,9 +28,46 @@ The dataset is stored in a comma-separated-value (CSV) file and there are a tota
 * Load pacakges   
 * Download, unzip, and read the data into a new dataframe    
      
-```{r}   
+
+```r
 library(plyr)    
 library(Hmisc)   
+```
+
+```
+## Loading required package: lattice
+```
+
+```
+## Loading required package: survival
+```
+
+```
+## Loading required package: Formula
+```
+
+```
+## Loading required package: ggplot2
+```
+
+```
+## 
+## Attaching package: 'Hmisc'
+```
+
+```
+## The following objects are masked from 'package:plyr':
+## 
+##     is.discrete, summarize
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     format.pval, round.POSIXt, trunc.POSIXt, units
+```
+
+```r
 library(ggplot2)   
 
 if(!file.exists("getdata-projectfiles-UCI HAR Dataset.zip")) {
@@ -41,7 +78,7 @@ if(!file.exists("getdata-projectfiles-UCI HAR Dataset.zip")) {
 }
 
 data <- read.csv("activity.csv")
-```    
+```
    
 ## What is mean total number of steps taken per day?   
 1. Make a histogram of the total number of steps taken each day   
@@ -52,17 +89,22 @@ data <- read.csv("activity.csv")
 * Sum the steps by date and create a histogram to show the frequency.   
 * Take the mean and the median of the steps per day   
 
-```{r}   
-   
+
+```r
 steps_per_day <- aggregate(steps ~ date, data, sum)
 with(steps_per_day, hist(steps, main = paste("Total Steps by Day"), col="green", xlab="# of Steps"))
+```
+
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png)
+
+```r
 steps_mean <- mean(steps_per_day$steps)
 steps_median <- median(steps_per_day$steps)
 ```
    
    
-**The mean is `r steps_mean`.**      
-**The median is `r steps_median`.**    
+**The mean is 1.0766189 &times; 10<sup>4</sup>.**      
+**The median is 10765.**    
   
 
 ## What is the average daily activity pattern?  
@@ -75,15 +117,20 @@ steps_median <- median(steps_per_day$steps)
 * Create a time series plot to show the steps per 5-minute interval.       
 * Calculate which interval contains the max number of steps on average.    
    
-```{r}
+
+```r
 steps_int <- aggregate(steps ~ interval, data, mean)
 
 with(steps_int,plot(interval, steps, type="l", col="purple", xlab="5-Minute Interval", ylab="# of Steps",main="Average Steps per Day by Interval"))
+```
 
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png)
+
+```r
 max_int <- steps_int[which.max(steps_int$steps),1]
-```   
+```
       
-**The 5-minute interval, on average across all the days in the dataset, containing the maximum number of steps is interval `r max_int`.**   
+**The 5-minute interval, on average across all the days in the dataset, containing the maximum number of steps is interval 835.**   
    
     
 ## Imputing missing values   
@@ -97,49 +144,57 @@ max_int <- steps_int[which.max(steps_int$steps),1]
 * Calculate sum of NA values    
    
    
-```{r}   
+
+```r
 incomplete <- sum(!complete.cases(data))   
-```   
+```
    
-**The total number of NA values is `r incomplete`**   
+**The total number of NA values is 2304**   
     
       
 * Create new dataset with no missing values by replacing NA values with the average steps per interval.  
-```{r}   
+
+```r
 imputed <- ddply(data, "interval", mutate, imputed.value = impute(steps, mean))
 imputed$imputed.value <- round(imputed$imputed.value)
 imputed <- imputed[c(4,2,3)]
 imputed <- setNames(imputed, c("steps","date","interval"))   
-```        
+```
        
 * Sum the steps of the new dataset by date and create a histogram to show the frequency.   
 * Take the mean and the median of the steps per day   
    
       
-```{r} 
+
+```r
 steps_imputed <- aggregate(steps ~ date, imputed, sum)
 with(steps_imputed, hist(steps, main = paste("Total Steps by Day (Imputed)"), col="blue", xlab="# of Steps"))
+```
+
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6-1.png)
+
+```r
 steps_imp_mean <- mean(steps_imputed$steps)
 steps_imp_median <- median(steps_imputed$steps)
-```     
+```
     
-**The mean for the imputed dataset is `r steps_imp_mean`.**      
-**The median for the imputed dataset is `r steps_imp_median`.**    
+**The mean for the imputed dataset is 1.0765639 &times; 10<sup>4</sup>.**      
+**The median for the imputed dataset is 1.0762 &times; 10<sup>4</sup>.**    
     
 * Calculate the difference between the original and the imputed means and medians.   
 * Calculate the total difference in steps between the original and imputed datasets.   
 
    
-```{r}    
+
+```r
 mean_diff <- steps_imp_mean - steps_mean   
 med_diff <- steps_imp_median - steps_median   
 total_diff <- sum(steps_imputed$steps) - sum(steps_per_day$steps)   
-
-```    
+```
    
-**The difference between the non-imputed mean and imputed mean is `r mean_diff`.**   
-**The difference between the non-imputed mean and imputed mean is `r med_diff`.**      
-**The difference between the total number of steps between the 2 datasets is `r total_diff`.**       
+**The difference between the non-imputed mean and imputed mean is -0.549335.**   
+**The difference between the non-imputed mean and imputed mean is -3.**      
+**The difference between the total number of steps between the 2 datasets is 8.6096 &times; 10<sup>4</sup>.**       
      
    
 ## Are there differences in activity patterns between weekdays and weekends? 
@@ -152,7 +207,8 @@ total_diff <- sum(steps_imputed$steps) - sum(steps_per_day$steps)
 * Aggregate the data to get the average steps by interval and day.     
 * Plot weekday and weekend data to compare the steps by interval.   
    
-``` {r}
+
+```r
 weekdays <- c("Monday", "Tuesday", "Wednesday", "Thursday", 
               "Friday")
 imputed$day = as.factor(ifelse(is.element(weekdays(as.Date(imputed$date)),weekdays), "Weekday", "Weekend"))
@@ -162,7 +218,8 @@ steps_interval_imp <- aggregate(steps ~ interval + day, imputed, mean)
 ggplot(steps_interval_imp, aes(x=interval, y=steps)) +       
 geom_line(color="blue") + facet_wrap(~ day, nrow=2, ncol=1) +   
 labs(x="5-Minute Interval", y="# of Steps") + theme_bw()    
+```
 
-```   
+![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8-1.png)
    
 **According to the above chart, the weekends show more overall activity throughout the day. However, the weekdays have a higher peak in the beginning of the day as compared to weekends.**    
